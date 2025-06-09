@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Be Honest</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000000;
+      color: #ffffff;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .container {
+      text-align: center;
+      width: 80%;
+      max-width: 600px;
+      animation: flicker 3s infinite;
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.98; }
+      52% { opacity: 0.6; }
+      54% { opacity: 1; }
+    }
+
+    input, button {
+      background: none;
+      border: 1px solid #fff;
+      color: #fff;
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .glitch {
+      font-size: 14px;
+      color: red;
+      opacity: 0.6;
+    }
+
+    .glitch-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(255, 255, 255, 0.03),
+        rgba(255,255,255,0.03) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      animation: glitchMove 0.3s infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .blackout {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+
+    .blackout.active {
+      opacity: 1;
+    }
+
+    @keyframes glitchMove {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-2px); }
+      100% { transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="glitch-overlay"></div>
+  <div class="blackout" id="blackout"></div>
+  <div class="container">
+    <h1 id="question">Are you ready to learn the <span style="color: red;">truth</span> about yourself?</h1>
+    <input type="text" id="answer" class="hidden" />
+    <button id="startBtn">Start</button>
+    <button id="nextBtn" class="hidden">Next</button>
+    <p id="glitch" class="glitch hidden">We know.</p>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const questionEl = document.getElementById('question');
+    const answerEl = document.getElementById('answer');
+    const glitch = document.getElementById('glitch');
+    const blackout = document.getElementById('blackout');
+
+    const questions = [
+      "What's your name? Are you sure you want to tell me?",
+      (name) => `What are you most afraid of, ${name}? You should be careful...`,
+      (name) => `${name}, have you ever lied to someone close? The answer is important.`,
+      (name) => `And to yourself, ${name}? You don't need to hide from me.`,
+      (name) => `What are you hiding, ${name}? I can feel it.`,
+      (name) => `What do you dream about most often, ${name}? Sometimes dreams become real.`,
+      (name) => `Have you ever felt like someone was watching you, ${name}? No one can see us here, right?`,
+      (name) => `Are you alone right now, ${name}? I hope you're not lying.`,
+      (name) => `Do you wish you could change everything, ${name}? I can change it for you...`,
+      (name) => `What happened three years ago, ${name}? Do you remember?`,
+      (name) => `Have you heard whispers behind you, ${name}? They're not just whispers.`,
+      (name) => `If you disappeared, who would notice, ${name}? I’m watching. Are you sure?`,
+      (name) => `When was the last time you cried, ${name}? We know why it was.`,
+      (name) => `What do you see when you close your eyes, ${name}? Sometimes we can't escape even in the dark.`,
+      (name) => `Why are you still with us, ${name}? You could leave, but you won’t.`,
+      (name) => `Do you believe this is just a website, ${name}? Check again...`,
+      (name) => `What will happen if you click "Next" now, ${name}? Will you regret it?`,
+      (name) => `Who's behind your screen, ${name}? I know. You’re not alone.`,
+      (name) => `Do you feel fear, ${name}? It’s just the beginning.`,
+      (name) => `Final question, ${name}. Are you ready for the truth? There is no going back.`
+    ];
+
+    let current = 0;
+    let answers = [];
+    let userName = '';
+
+    startBtn.addEventListener('click', () => {
+      startBtn.classList.add('hidden');
+      answerEl.classList.remove('hidden');
+      nextBtn.classList.remove('hidden');
+      questionEl.textContent = questions[0];
+    });
+
+    nextBtn.addEventListener('click', () => {
+      const input = answerEl.value.trim();
+      if (!input) return;
+      answers.push(input);
+      answerEl.value = '';
+
+      if (current === 0) {
+        userName = input;
+      }
+
+      current++;
+
+      function updateQuestion() {
+        if (current < questions.length) {
+          const q = questions[current];
+          const questionText = typeof q === 'function' ? q(userName) : q;
+          questionEl.textContent = questionText;
+
+          if (questionText.includes("Have you heard whispers behind you")) {
+            whisper.play().catch(() => {});
+          }
+        } else {
+          endGame();
+        }
+      }
+
+      if (Math.floor(Math.random() * 6) === 0) {
+        blackout.classList.add('active');
+        setTimeout(() => {
+          blackout.classList.remove('active');
+          updateQuestion();
+        }, 800);
+      } else {
+        updateQuestion();
+      }
+    });
+
+    function endGame() {
+      answerEl.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+      const lastAnswer = answers[answers.length - 1].toLowerCase();
+      let ending;
+      if (lastAnswer.includes('yes') || lastAnswer.includes('ready')) {
+        ending = `Now you are one of us, ${userName}.`;
+      } else if (lastAnswer.includes('no')) {
+        ending = `Too bad, ${userName}. We found you anyway.`;
+      } else {
+        ending = `${userName}, you shouldn't have clicked.`;
+      }
+      questionEl.innerHTML = `<span style="color: red; font-size: 24px;">${ending}</span>`;
+    }
+
+    const whisper = new Audio('whispers.mp3');
+    whisper.loop = true;
+    whisper.volume = 0.2;
+
+    const staticNoise = new Audio('static.mp3');
+    staticNoise.loop = true;
+    staticNoise.volume = 0.15;
+
+    document.body.addEventListener('click', () => {
+      staticNoise.play().catch(() => {});
+    }, { once: true });
+
+    console.log('%cRUN.HE.IS.WATCHING.YOU', 'color: red; font-size: 16px');
+  </script>
+</body>
+</html>
